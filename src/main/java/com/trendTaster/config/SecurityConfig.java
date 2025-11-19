@@ -66,7 +66,9 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://localhost:3001",
             "https://trend-taster-front-dev.pages.dev",
-            "https://*.trend-taster-front-dev.pages.dev"
+            "https://*.trend-taster-front-dev.pages.dev",
+            "https://trend-taster-front.pages.dev",
+            "https://*.trend-taster-front.pages.dev"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
