@@ -1,0 +1,14 @@
+.git
+.gitignore
+.idea
+*.iml
+build
+.gradle
+out
+target
+*.log
+*.tmp
+.env
+.env.local
+README.md
+CLAUDE.md
