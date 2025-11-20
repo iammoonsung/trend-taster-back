@@ -2,6 +2,7 @@ package com.trendTaster.dto;
 
 import com.trendTaster.domain.Product;
 import com.trendTaster.domain.ProductImage;
+import com.trendTaster.domain.ProductUpdateSubmission;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -135,5 +136,55 @@ public class ProductDto {
     public static class FilterOptions {
         private List<String> stores;
         private List<String> categories;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UpdateSubmissionResponse {
+        private Long id;
+        private Long productId;
+        private String productName; // Original product name for reference
+        private String name;
+        private String store;
+        private Integer price;
+        private String category;
+        private String releaseDate;
+        private String description;
+        private String ingredients;
+        private String barcode;
+        private String location;
+        private String status;
+        private String submittedBy;
+        private String reviewedBy;
+        private String rejectionReason;
+        private String createdAt;
+        private String updatedAt;
+
+        public static UpdateSubmissionResponse from(ProductUpdateSubmission submission) {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            return UpdateSubmissionResponse.builder()
+                .id(submission.getId())
+                .productId(submission.getProduct().getId())
+                .productName(submission.getProduct().getName())
+                .name(submission.getName())
+                .store(submission.getStore())
+                .price(submission.getPrice())
+                .category(submission.getCategory())
+                .releaseDate(submission.getReleaseDate() != null ? submission.getReleaseDate().toString() : null)
+                .description(submission.getDescription())
+                .ingredients(submission.getIngredients())
+                .barcode(submission.getBarcode())
+                .location(submission.getLocation())
+                .status(submission.getStatus().name().toLowerCase())
+                .submittedBy(submission.getSubmittedBy() != null ? submission.getSubmittedBy().getUsername() : null)
+                .reviewedBy(submission.getReviewedBy() != null ? submission.getReviewedBy().getUsername() : null)
+                .rejectionReason(submission.getRejectionReason())
+                .createdAt(submission.getCreatedAt() != null ? submission.getCreatedAt().format(formatter) : null)
+                .updatedAt(submission.getUpdatedAt() != null ? submission.getUpdatedAt().format(formatter) : null)
+                .build();
+        }
     }
 }

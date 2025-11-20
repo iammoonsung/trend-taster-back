@@ -1,9 +1,6 @@
 package com.trendTaster.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 public class AdminDto {
 
@@ -16,7 +13,16 @@ public class AdminDto {
         private Long approvedProducts;
         private Long pendingStores;
         private Long approvedStores;
+        private Long pendingUpdateSubmissions;
         private Long totalUsers;
         private Long adminUsers;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RejectRequest {
+        private String reason;
     }
 }

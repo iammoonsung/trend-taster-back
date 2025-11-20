@@ -97,4 +97,18 @@ public class Product extends BaseEntity {
         if (releaseDate == null) return false;
         return releaseDate.isAfter(LocalDate.now().minusDays(7));
     }
+
+    public void updateDetails(String name, String store, Integer price, String category,
+                              LocalDate releaseDate, String description, String ingredients,
+                              String barcode, String location) {
+        if (name != null) this.name = name;
+        if (store != null) this.store = store;
+        if (price != null) this.price = price;
+        if (category != null) this.category = category;
+        if (releaseDate != null) this.releaseDate = releaseDate;
+        if (description != null) this.description = description;
+        if (ingredients != null) this.ingredients = ingredients;
+        if (barcode != null) this.barcode = barcode;
+        if (location != null) this.location = location;
+    }
 }

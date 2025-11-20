@@ -3,6 +3,7 @@ package com.trendTaster.controller;
 import com.trendTaster.domain.User;
 import com.trendTaster.dto.ProductDto;
 import com.trendTaster.service.ProductService;
+import com.trendTaster.service.ProductUpdateSubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,6 +32,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductUpdateSubmissionService updateSubmissionService;
 
     @Operation(summary = "제품 목록 조회", description = "필터링 조건에 따라 제품 목록을 페이징하여 조회합니다.")
     @ApiResponses(value = {
@@ -94,17 +96,17 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @Operation(summary = "제품 수정", description = "제품 정보를 수정합니다. (인증 필요, 본인이 등록한 제품만 가능)",
+    @Operation(summary = "제품 수정 요청", description = "제품 정보 수정을 요청합니다. 관리자 승인 후 반영됩니다. (인증 필요, 본인이 등록한 제품만 가능)",
             security = @SecurityRequirement(name = "Bearer Authentication"))
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "수정 성공",
-                    content = @Content(schema = @Schema(implementation = ProductDto.Response.class))),
+            @ApiResponse(responseCode = "200", description = "수정 요청 제출 성공",
+                    content = @Content(schema = @Schema(implementation = ProductDto.UpdateSubmissionResponse.class))),
             @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content),
             @ApiResponse(responseCode = "404", description = "제품을 찾을 수 없음", content = @Content)
     })
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductDto.Response> updateProduct(
+    public ResponseEntity<ProductDto.UpdateSubmissionResponse> submitProductUpdate(
             @Parameter(description = "제품 ID") @PathVariable("id") Long id,
             @Valid @RequestBody ProductDto.UpdateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal User user
@@ -112,8 +114,8 @@ public class ProductController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        ProductDto.Response product = productService.updateProduct(id, request, user);
-        return ResponseEntity.ok(product);
+        ProductDto.UpdateSubmissionResponse submission = updateSubmissionService.submitUpdate(id, request, user);
+        return ResponseEntity.ok(submission);
     }
 
     @Operation(summary = "제품 삭제", description = "제품을 삭제합니다. (인증 필요, 본인이 등록한 제품만 가능)",

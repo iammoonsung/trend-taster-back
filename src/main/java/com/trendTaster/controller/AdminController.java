@@ -9,6 +9,7 @@ import com.trendTaster.repository.ProductRepository;
 import com.trendTaster.repository.StoreRepository;
 import com.trendTaster.repository.UserRepository;
 import com.trendTaster.service.ProductService;
+import com.trendTaster.service.ProductUpdateSubmissionService;
 import com.trendTaster.service.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     private final ProductService productService;
+    private final ProductUpdateSubmissionService updateSubmissionService;
     private final StoreService storeService;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -192,6 +194,7 @@ public class AdminController {
                 .approvedProducts(productRepository.countApprovedProducts())
                 .pendingStores(storeRepository.countPendingStores())
                 .approvedStores(storeRepository.countApprovedStores())
+                .pendingUpdateSubmissions(updateSubmissionService.countPendingUpdateSubmissions())
                 .totalUsers(userRepository.count())
                 .adminUsers(userRepository.countAdminUsers())
                 .build();
@@ -273,5 +276,68 @@ public class AdminController {
         userRepository.save(targetUser);
 
         return ResponseEntity.ok(AuthDto.UserResponse.from(targetUser));
+    }
+
+    // Product Update Submission Management
+
+    @Operation(summary = "제품 수정 요청 목록 조회", description = "승인 대기 중인 제품 수정 요청 목록을 조회합니다. (관리자 권한 필요)",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = ProductDto.UpdateSubmissionResponse.class))),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 필요", content = @Content)
+    })
+    @GetMapping("/product-updates")
+    public ResponseEntity<List<ProductDto.UpdateSubmissionResponse>> getPendingProductUpdates(
+            @Parameter(hidden = true) @AuthenticationPrincipal User user) {
+        if (user == null || !user.isAdmin()) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<ProductDto.UpdateSubmissionResponse> submissions = updateSubmissionService.getPendingUpdateSubmissions();
+        return ResponseEntity.ok(submissions);
+    }
+
+    @Operation(summary = "제품 수정 요청 승인", description = "대기 중인 제품 수정 요청을 승인합니다. (관리자 권한 필요)",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "승인 성공",
+                    content = @Content(schema = @Schema(implementation = ProductDto.Response.class))),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 필요", content = @Content),
+            @ApiResponse(responseCode = "404", description = "수정 요청을 찾을 수 없음", content = @Content)
+    })
+    @PostMapping("/product-updates/{id}/approve")
+    public ResponseEntity<ProductDto.Response> approveProductUpdate(
+            @Parameter(description = "수정 요청 ID") @PathVariable("id") Long id,
+            @Parameter(hidden = true) @AuthenticationPrincipal User user
+    ) {
+        if (user == null || !user.isAdmin()) {
+            return ResponseEntity.status(403).build();
+        }
+
+        ProductDto.Response product = updateSubmissionService.approveUpdate(id, user);
+        return ResponseEntity.ok(product);
+    }
+
+    @Operation(summary = "제품 수정 요청 거부", description = "대기 중인 제품 수정 요청을 거부합니다. (관리자 권한 필요)",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "거부 성공"),
+            @ApiResponse(responseCode = "403", description = "관리자 권한 필요", content = @Content),
+            @ApiResponse(responseCode = "404", description = "수정 요청을 찾을 수 없음", content = @Content)
+    })
+    @PostMapping("/product-updates/{id}/reject")
+    public ResponseEntity<Void> rejectProductUpdate(
+            @Parameter(description = "수정 요청 ID") @PathVariable("id") Long id,
+            @RequestBody(required = false) AdminDto.RejectRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal User user
+    ) {
+        if (user == null || !user.isAdmin()) {
+            return ResponseEntity.status(403).build();
+        }
+
+        String reason = request != null ? request.getReason() : "승인 거부됨";
+        updateSubmissionService.rejectUpdate(id, reason, user);
+        return ResponseEntity.ok().build();
     }
 }
