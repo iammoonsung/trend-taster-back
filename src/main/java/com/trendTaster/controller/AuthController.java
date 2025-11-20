@@ -86,4 +86,24 @@ public class AuthController {
         response.put("status", "success");
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "프로필 수정", description = "현재 사용자의 프로필 정보를 수정합니다.",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로필 수정 성공",
+                    content = @Content(schema = @Schema(implementation = AuthDto.UserResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (사용자명 중복 등)", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (토큰 없음 또는 만료)", content = @Content)
+    })
+    @PutMapping("/profile")
+    public ResponseEntity<AuthDto.UserResponse> updateProfile(
+            @Parameter(hidden = true) @AuthenticationPrincipal User user,
+            @Valid @RequestBody AuthDto.UpdateProfileRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        log.info("Update profile request for user: {}", user.getEmail());
+        AuthDto.UserResponse response = authService.updateProfile(user, request);
+        return ResponseEntity.ok(response);
+    }
 }

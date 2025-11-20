@@ -59,4 +59,8 @@ public class User extends BaseEntity {
     public boolean isSuperAdmin() {
         return this.role == UserRole.SUPER_ADMIN;
     }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
 }

@@ -45,6 +45,15 @@ public class AuthDto {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UpdateProfileRequest {
+        @Size(min = 3, max = 50, message = "사용자명은 3-50자 사이여야 합니다")
+        private String username;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Builder
     public static class AuthResponse {
         private String token;

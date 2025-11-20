@@ -74,4 +74,20 @@ public class AuthService {
     public AuthDto.UserResponse getCurrentUser(User user) {
         return AuthDto.UserResponse.from(user);
     }
+
+    @Transactional
+    public AuthDto.UserResponse updateProfile(User user, AuthDto.UpdateProfileRequest request) {
+        // If username is provided and different from current username
+        if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+            // Check if the new username is already taken by another user
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new IllegalArgumentException("이미 사용 중인 사용자명입니다");
+            }
+            user.updateUsername(request.getUsername());
+            userRepository.save(user);
+            log.info("User {} updated username to: {}", user.getEmail(), request.getUsername());
+        }
+
+        return AuthDto.UserResponse.from(user);
+    }
 }
